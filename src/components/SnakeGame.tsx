@@ -27,7 +27,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ onGameEnd }) => {
         <h2 className="text-2xl font-bold">Snake Game</h2>
         {!gameOver && (
           <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm"
+            className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded text-sm"
             onClick={togglePause}
           >
             {isPaused ? "Resume" : "Pause"}
@@ -40,8 +40,8 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ onGameEnd }) => {
         <button
           className={`font-bold py-1 px-3 rounded ${
             difficulty === Difficulty.Easy
-              ? "bg-green-600 text-white"
-              : "bg-green-500 hover:bg-green-700 text-white"
+              ? "bg-red-600 text-white"
+              : "bg-red-500 hover:bg-red-700 text-white"
           }`}
           onClick={() => setDifficulty(Difficulty.Easy)}
           disabled={!gameOver}
@@ -51,8 +51,8 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ onGameEnd }) => {
         <button
           className={`font-bold py-1 px-3 rounded ${
             difficulty === Difficulty.Medium
-              ? "bg-yellow-600 text-white"
-              : "bg-yellow-500 hover:bg-yellow-700 text-white"
+              ? "bg-red-700 text-white"
+              : "bg-red-600 hover:bg-red-800 text-white"
           }`}
           onClick={() => setDifficulty(Difficulty.Medium)}
           disabled={!gameOver}
@@ -62,8 +62,8 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ onGameEnd }) => {
         <button
           className={`font-bold py-1 px-3 rounded ${
             difficulty === Difficulty.Hard
-              ? "bg-red-600 text-white"
-              : "bg-red-500 hover:bg-red-700 text-white"
+              ? "bg-red-800 text-white"
+              : "bg-red-700 hover:bg-red-900 text-white"
           }`}
           onClick={() => setDifficulty(Difficulty.Hard)}
           disabled={!gameOver}
@@ -129,7 +129,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ onGameEnd }) => {
         <div className="mt-4 text-center">
           <p className="text-lg font-bold text-red-600 mb-2">Game Over!</p>
           <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
             onClick={resetGame}
           >
             Restart Game

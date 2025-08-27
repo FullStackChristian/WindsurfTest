@@ -69,93 +69,137 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
     setPlayerName("");
   };
 
-  return (
-    <div className="max-w-md mx-auto p-4 bg-white rounded shadow-md">
-      <h2 className="text-2xl font-bold mb-4 text-center">🏆 Leaderboard</h2>
+  const getRankIcon = (index: number) => {
+    switch (index) {
+      case 0: return "🥇";
+      case 1: return "🥈";
+      case 2: return "🥉";
+      default: return "🏅";
+    }
+  };
 
+  const getRankStyles = (index: number) => {
+    switch (index) {
+      case 0: return "bg-gradient-to-r from-yellow-100 to-yellow-200 border-2 border-yellow-400 shadow-lg";
+      case 1: return "bg-gradient-to-r from-gray-100 to-gray-200 border-2 border-gray-400 shadow-md";
+      case 2: return "bg-gradient-to-r from-orange-100 to-orange-200 border-2 border-orange-400 shadow-md";
+      default: return "bg-white border border-gray-200 hover:bg-gray-50";
+    }
+  };
+
+  return (
+    <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-red-600 to-pink-600 px-6 py-4">
+        <h2 className="text-xl font-bold text-white text-center flex items-center justify-center gap-2">
+          🏆 Leaderboard
+        </h2>
+      </div>
+
+      {/* Score Input Modal */}
       {showNameInput && (
-        <div className="mb-4 p-4 bg-yellow-50 rounded border">
-          <h3 className="text-lg font-semibold mb-2">
-            Great score: {newScore}!
-          </h3>
-          <p className="text-sm text-gray-600 mb-3">
-            Enter your name to appear on the leaderboard:
-          </p>
-          <div className="flex gap-2">
+        <div className="p-6 bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-200">
+          <div className="text-center mb-4">
+            <div className="text-3xl mb-2">🎉</div>
+            <h3 className="text-xl font-bold text-green-800 mb-1">
+              Awesome Score: {newScore}!
+            </h3>
+            <p className="text-sm text-green-600">
+              Enter your name to join the hall of fame
+            </p>
+          </div>
+          
+          <div className="space-y-3">
             <input
               type="text"
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
-              placeholder="Your name"
-              className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter your name..."
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-center font-medium"
               maxLength={20}
               onKeyPress={(e) => e.key === "Enter" && handleSubmitScore()}
+              autoFocus
             />
-            <button
-              onClick={handleSubmitScore}
-              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-            >
-              Save
-            </button>
-            <button
-              onClick={handleSkipScore}
-              className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-            >
-              Skip
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleSubmitScore}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+              >
+                <span>💾</span> Save Score
+              </button>
+              <button
+                onClick={handleSkipScore}
+                className="px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition-colors duration-200"
+              >
+                Skip
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      <div className="space-y-2">
+      {/* Leaderboard Content */}
+      <div className="p-6">
         {leaderboard.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">
-            No scores yet. Be the first to play!
-          </p>
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">🎮</div>
+            <p className="text-gray-500 text-lg font-medium mb-2">
+              No scores yet!
+            </p>
+            <p className="text-gray-400 text-sm">
+              Be the first to play and claim the top spot
+            </p>
+          </div>
         ) : (
           <>
-            <div className="mb-2">
-              <span className="text-sm font-semibold text-gray-600">
-                Top {Math.min(leaderboard.length, 25)} Players
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm font-semibold text-gray-600 flex items-center gap-2">
+                📊 Top {Math.min(leaderboard.length, MAX_LEADERBOARD_ENTRIES)} Players
+              </span>
+              <span className="text-xs text-gray-400">
+                {leaderboard.length} total scores
               </span>
             </div>
-            {leaderboard.map((entry, index) => (
-              <div
-                key={`${entry.name}-${entry.score}-${index}`}
-                className={`flex justify-between items-center p-3 rounded ${
-                  index === 0
-                    ? "bg-yellow-100 border-2 border-yellow-400"
-                    : index === 1
-                    ? "bg-gray-100 border-2 border-gray-400"
-                    : index === 2
-                    ? "bg-orange-100 border-2 border-orange-400"
-                    : "bg-gray-50"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`font-bold text-lg ${
-                      index === 0
-                        ? "text-yellow-600"
-                        : index === 1
-                        ? "text-gray-600"
-                        : index === 2
-                        ? "text-orange-600"
-                        : "text-gray-500"
-                    }`}
-                  >
-                    #{index + 1}
-                  </span>
-                  <div>
-                    <div className="font-semibold">{entry.name}</div>
-                    <div className="text-xs text-gray-500">{entry.date}</div>
+            
+            <div className="space-y-2">
+              {leaderboard.map((entry, index) => (
+                <div
+                  key={`${entry.name}-${entry.score}-${index}`}
+                  className={`flex items-center justify-between p-4 rounded-lg transition-all duration-200 ${getRankStyles(index)}`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{getRankIcon(index)}</span>
+                      <span className="font-bold text-lg text-gray-700">
+                        #{index + 1}
+                      </span>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-900 truncate max-w-32">
+                        {entry.name}
+                      </div>
+                      <div className="text-xs text-gray-500 flex items-center gap-1">
+                        📅 {entry.date}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold text-xl text-red-600">
+                      {entry.score}
+                    </div>
+                    <div className="text-xs text-gray-500">points</div>
                   </div>
                 </div>
-                <div className="font-bold text-lg text-blue-600">
-                  {entry.score}
-                </div>
+              ))}
+            </div>
+
+            {leaderboard.length >= 10 && (
+              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-center">
+                <p className="text-sm text-red-700">
+                  🔥 Competition is heating up! Can you beat the top score?
+                </p>
               </div>
-            ))}
+            )}
           </>
         )}
       </div>
