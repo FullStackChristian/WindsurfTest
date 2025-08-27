@@ -23,7 +23,11 @@ enum Difficulty {
   Hard,
 }
 
-const SnakeGame = () => {
+interface SnakeGameProps {
+  onGameEnd?: (score: number) => void;
+}
+
+const SnakeGame: React.FC<SnakeGameProps> = ({ onGameEnd }) => {
   const [snake, setSnake] = useState<SnakeSegment[]>([
     { x: 10, y: 10 },
     { x: 11, y: 10 },
@@ -124,6 +128,9 @@ const SnakeGame = () => {
           )
         ) {
           setGameOver(true);
+          if (onGameEnd) {
+            onGameEnd(score);
+          }
         }
 
         setSnake(newSnake);
