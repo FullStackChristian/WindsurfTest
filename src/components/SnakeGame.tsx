@@ -1,15 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
-interface SnakeSegment {
-  x: number;
-  y: number;
-}
-
-interface Food {
-  x: number;
-  y: number;
-}
-
+// Enums
 enum Direction {
   Right,
   Left,
@@ -23,27 +14,74 @@ enum Difficulty {
   Hard,
 }
 
+// Types
+interface Position {
+  x: number;
+  y: number;
+}
+
+type SnakeSegment = Position;
+type Food = Position;
+
+// Constants
+const BOARD_SIZE = 20;
+const INITIAL_SNAKE_POSITION: SnakeSegment[] = [
+  { x: 10, y: 10 },
+  { x: 11, y: 10 },
+  { x: 12, y: 10 },
+];
+
+const DIFFICULTY_SPEEDS = {
+  [Difficulty.Easy]: 150,
+  [Difficulty.Medium]: 100,
+  [Difficulty.Hard]: 50,
+} as const;
+
 interface SnakeGameProps {
   onGameEnd?: (score: number) => void;
 }
 
+// Utility functions
+const generateRandomFood = (): Food => ({
+  x: Math.floor(Math.random() * BOARD_SIZE),
+  y: Math.floor(Math.random() * BOARD_SIZE),
+});
+
+const isOutOfBounds = (position: Position): boolean => {
+  return position.x < 0 || position.x >= BOARD_SIZE || position.y < 0 || position.y >= BOARD_SIZE;
+};
+
+const isCollisionWithSelf = (head: Position, snake: SnakeSegment[]): boolean => {
+  return snake.some((segment, index) => 
+    index < snake.length - 1 && segment.x === head.x && segment.y === head.y
+  );
+};
+
+const getNextHeadPosition = (head: Position, direction: Direction): Position => {
+  switch (direction) {
+    case Direction.Right:
+      return { x: head.x + 1, y: head.y };
+    case Direction.Left:
+      return { x: head.x - 1, y: head.y };
+    case Direction.Up:
+      return { x: head.x, y: head.y - 1 };
+    case Direction.Down:
+      return { x: head.x, y: head.y + 1 };
+    default:
+      throw new Error(`Invalid direction: ${direction}`);
+  }
+};
+
 const SnakeGame: React.FC<SnakeGameProps> = ({ onGameEnd }) => {
-  const [snake, setSnake] = useState<SnakeSegment[]>([
-    { x: 10, y: 10 },
-    { x: 11, y: 10 },
-    { x: 12, y: 10 },
-  ]);
-  const [food, setFood] = useState<Food>({
-    x: Math.floor(Math.random() * 20),
-    y: Math.floor(Math.random() * 20),
-  });
-  const [difficulty, setDifficulty] = useState<Difficulty>(1);
-  const [speed, setSpeed] = useState(150);
+  const [snake, setSnake] = useState<SnakeSegment[]>(INITIAL_SNAKE_POSITION);
+  const [food, setFood] = useState<Food>(generateRandomFood);
+  const [difficulty, setDifficulty] = useState<Difficulty>(Difficulty.Medium);
+  const [speed, setSpeed] = useState<number>(DIFFICULTY_SPEEDS[Difficulty.Medium]);
   const [direction, setDirection] = useState<Direction>(Direction.Right);
-  const [score, setScore] = useState<number>(0);
-  const [gameOver, setGameOver] = useState<boolean>(false);
+  const [score, setScore] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
   const showTouchOverlay = true;
-  const handleTouchStart = (event: TouchEvent) => {
+  const handleTouchStart = useCallback((event: TouchEvent) => {
     const touch = event.touches[0];
     const x = touch.clientX;
     const y = touch.clientY;
@@ -67,105 +105,71 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ onGameEnd }) => {
         setDirection(Direction.Down);
       }
     }
-  };
+  }, [direction]);
 
   useEffect(() => {
-    if (difficulty === Difficulty.Easy) {
-      setSpeed(150);
-    } else if (difficulty === Difficulty.Medium) {
-      setSpeed(100);
-    } else if (difficulty === Difficulty.Hard) {
-      setSpeed(50);
-    }
+    setSpeed(DIFFICULTY_SPEEDS[difficulty]);
   }, [difficulty]);
 
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (!gameOver) {
-        const newSnake: SnakeSegment[] = [...snake];
-        const head: SnakeSegment = newSnake[newSnake.length - 1];
-        let newHead: SnakeSegment;
+  const moveSnake = useCallback(() => {
+    if (gameOver) return;
 
-        switch (direction) {
-          case Direction.Right:
-            newHead = { x: head.x + 1, y: head.y };
-            break;
-          case Direction.Left:
-            newHead = { x: head.x - 1, y: head.y };
-            break;
-          case Direction.Up:
-            newHead = { x: head.x, y: head.y - 1 };
-            break;
-          case Direction.Down:
-            newHead = { x: head.x, y: head.y + 1 };
-            break;
-          default:
-            throw new Error(`Invalid direction: ${direction}`);
-        }
+    setSnake(currentSnake => {
+      const newSnake = [...currentSnake];
+      const head = newSnake[newSnake.length - 1];
+      const newHead = getNextHeadPosition(head, direction);
 
-        newSnake.push(newHead);
+      newSnake.push(newHead);
 
-        if (newHead.x === food.x && newHead.y === food.y) {
-          setScore(score + 1);
-          setFood({
-            x: Math.floor(Math.random() * 20),
-            y: Math.floor(Math.random() * 20),
-          });
-        } else {
-          newSnake.shift();
-        }
-
-        if (
-          newHead.x < 0 ||
-          newHead.x >= 20 ||
-          newHead.y < 0 ||
-          newHead.y >= 20 ||
-          snake.some(
-            (segment, index) =>
-              index < snake.length - 1 &&
-              segment.x === newHead.x &&
-              segment.y === newHead.y
-          )
-        ) {
-          setGameOver(true);
-          if (onGameEnd) {
-            onGameEnd(score);
-          }
-        }
-
-        setSnake(newSnake);
+      // Check for food collision
+      if (newHead.x === food.x && newHead.y === food.y) {
+        setScore(currentScore => currentScore + 1);
+        setFood(generateRandomFood());
+      } else {
+        newSnake.shift();
       }
-    }, speed);
 
+      // Check for collisions
+      if (isOutOfBounds(newHead) || isCollisionWithSelf(newHead, currentSnake)) {
+        setGameOver(true);
+        if (onGameEnd) {
+          // Use the current score from the closure
+          setScore(currentScore => {
+            onGameEnd(currentScore + (newHead.x === food.x && newHead.y === food.y ? 1 : 0));
+            return currentScore + (newHead.x === food.x && newHead.y === food.y ? 1 : 0);
+          });
+        }
+      }
+
+      return newSnake;
+    });
+  }, [direction, food, gameOver, onGameEnd]);
+
+  useEffect(() => {
+    const intervalId = setInterval(moveSnake, speed);
     return () => clearInterval(intervalId);
-  }, [snake, food, direction, gameOver, score]);
+  }, [moveSnake, speed]);
 
-  const handleKeyDown = (event: KeyboardEvent) => {
-    switch (event.key) {
-      case "ArrowRight":
-        if (direction !== Direction.Left) {
-          setDirection(Direction.Right);
-        }
-        break;
-      case "ArrowLeft":
-        if (direction !== Direction.Right) {
-          setDirection(Direction.Left);
-        }
-        break;
-      case "ArrowUp":
-        if (direction !== Direction.Down) {
-          setDirection(Direction.Up);
-        }
-        break;
-      case "ArrowDown":
-        if (direction !== Direction.Up) {
-          setDirection(Direction.Down);
-        }
-        break;
-      default:
-        break;
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    const keyDirectionMap: Record<string, Direction> = {
+      'ArrowRight': Direction.Right,
+      'ArrowLeft': Direction.Left,
+      'ArrowUp': Direction.Up,
+      'ArrowDown': Direction.Down,
+    };
+
+    const oppositeDirections: Record<Direction, Direction> = {
+      [Direction.Right]: Direction.Left,
+      [Direction.Left]: Direction.Right,
+      [Direction.Up]: Direction.Down,
+      [Direction.Down]: Direction.Up,
+    };
+
+    const newDirection = keyDirectionMap[event.key];
+    if (newDirection !== undefined && direction !== oppositeDirections[newDirection]) {
+      setDirection(newDirection);
     }
-  };
+  }, [direction]);
 
   useEffect(() => {
     document.addEventListener("keydown", handleKeyDown);
@@ -208,9 +212,9 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ onGameEnd }) => {
         </button>
       </div>
       <div className="grid grid-cols-20 grid-rows-20 gap-1">
-        {Array.from({ length: 20 }, (_, row) => (
+        {Array.from({ length: BOARD_SIZE }, (_, row) => (
           <React.Fragment key={row}>
-            {Array.from({ length: 20 }, (_, col) => (
+            {Array.from({ length: BOARD_SIZE }, (_, col) => (
               <div
                 key={col}
                 className={`w-4 h-4 ${
@@ -262,15 +266,8 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ onGameEnd }) => {
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             onClick={() => {
-              setSnake([
-                { x: 10, y: 10 },
-                { x: 11, y: 10 },
-                { x: 12, y: 10 },
-              ]);
-              setFood({
-                x: Math.floor(Math.random() * 20),
-                y: Math.floor(Math.random() * 20),
-              });
+              setSnake(INITIAL_SNAKE_POSITION);
+              setFood(generateRandomFood());
               setDirection(Direction.Right);
               setScore(0);
               setGameOver(false);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 export interface LeaderboardEntry {
   name: string;
@@ -11,14 +11,17 @@ interface LeaderboardProps {
   newScore?: number;
 }
 
-const Leaderboard: React.FC<LeaderboardProps> = ({ onPlayerNameSubmit, newScore }) => {
-  const [playerName, setPlayerName] = useState('');
+const Leaderboard: React.FC<LeaderboardProps> = ({
+  onPlayerNameSubmit,
+  newScore,
+}) => {
+  const [playerName, setPlayerName] = useState("");
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [showNameInput, setShowNameInput] = useState(false);
 
   // Load leaderboard from localStorage on component mount
   useEffect(() => {
-    const savedLeaderboard = localStorage.getItem('snakeGameLeaderboard');
+    const savedLeaderboard = localStorage.getItem("snakeGameLeaderboard");
     if (savedLeaderboard) {
       setLeaderboard(JSON.parse(savedLeaderboard));
     }
@@ -33,9 +36,9 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ onPlayerNameSubmit, newScore 
 
   const addScore = (name: string, score: number) => {
     const newEntry: LeaderboardEntry = {
-      name: name.trim() || 'Anonymous',
+      name: name.trim() || "Anonymous",
       score,
-      date: new Date().toLocaleDateString()
+      date: new Date().toLocaleDateString(),
     };
 
     const updatedLeaderboard = [...leaderboard, newEntry]
@@ -43,38 +46,40 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ onPlayerNameSubmit, newScore 
       .slice(0, 25); // Keep only top 25
 
     setLeaderboard(updatedLeaderboard);
-    localStorage.setItem('snakeGameLeaderboard', JSON.stringify(updatedLeaderboard));
+    localStorage.setItem(
+      "snakeGameLeaderboard",
+      JSON.stringify(updatedLeaderboard)
+    );
   };
 
   const handleSubmitScore = () => {
     if (newScore !== undefined) {
       addScore(playerName, newScore);
-      setPlayerName('');
+      setPlayerName("");
       setShowNameInput(false);
       if (onPlayerNameSubmit) {
-        onPlayerNameSubmit(playerName.trim() || 'Anonymous');
+        onPlayerNameSubmit(playerName.trim() || "Anonymous");
       }
     }
   };
 
   const handleSkipScore = () => {
     setShowNameInput(false);
-    setPlayerName('');
-  };
-
-  const clearLeaderboard = () => {
-    setLeaderboard([]);
-    localStorage.removeItem('snakeGameLeaderboard');
+    setPlayerName("");
   };
 
   return (
     <div className="max-w-md mx-auto p-4 bg-white rounded shadow-md">
       <h2 className="text-2xl font-bold mb-4 text-center">🏆 Leaderboard</h2>
-      
+
       {showNameInput && (
         <div className="mb-4 p-4 bg-yellow-50 rounded border">
-          <h3 className="text-lg font-semibold mb-2">Great score: {newScore}!</h3>
-          <p className="text-sm text-gray-600 mb-3">Enter your name to appear on the leaderboard:</p>
+          <h3 className="text-lg font-semibold mb-2">
+            Great score: {newScore}!
+          </h3>
+          <p className="text-sm text-gray-600 mb-3">
+            Enter your name to appear on the leaderboard:
+          </p>
           <div className="flex gap-2">
             <input
               type="text"
@@ -83,7 +88,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ onPlayerNameSubmit, newScore 
               placeholder="Your name"
               className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               maxLength={20}
-              onKeyPress={(e) => e.key === 'Enter' && handleSubmitScore()}
+              onKeyPress={(e) => e.key === "Enter" && handleSubmitScore()}
             />
             <button
               onClick={handleSubmitScore}
@@ -103,35 +108,41 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ onPlayerNameSubmit, newScore 
 
       <div className="space-y-2">
         {leaderboard.length === 0 ? (
-          <p className="text-gray-500 text-center py-8">No scores yet. Be the first to play!</p>
+          <p className="text-gray-500 text-center py-8">
+            No scores yet. Be the first to play!
+          </p>
         ) : (
           <>
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-semibold text-gray-600">Top {Math.min(leaderboard.length, 25)} Players</span>
-              <button
-                onClick={clearLeaderboard}
-                className="text-xs bg-red-500 hover:bg-red-700 text-white px-2 py-1 rounded"
-              >
-                Clear
-              </button>
+            <div className="mb-2">
+              <span className="text-sm font-semibold text-gray-600">
+                Top {Math.min(leaderboard.length, 25)} Players
+              </span>
             </div>
             {leaderboard.map((entry, index) => (
               <div
                 key={`${entry.name}-${entry.score}-${index}`}
                 className={`flex justify-between items-center p-3 rounded ${
-                  index === 0 ? 'bg-yellow-100 border-2 border-yellow-400' :
-                  index === 1 ? 'bg-gray-100 border-2 border-gray-400' :
-                  index === 2 ? 'bg-orange-100 border-2 border-orange-400' :
-                  'bg-gray-50'
+                  index === 0
+                    ? "bg-yellow-100 border-2 border-yellow-400"
+                    : index === 1
+                    ? "bg-gray-100 border-2 border-gray-400"
+                    : index === 2
+                    ? "bg-orange-100 border-2 border-orange-400"
+                    : "bg-gray-50"
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <span className={`font-bold text-lg ${
-                    index === 0 ? 'text-yellow-600' :
-                    index === 1 ? 'text-gray-600' :
-                    index === 2 ? 'text-orange-600' :
-                    'text-gray-500'
-                  }`}>
+                  <span
+                    className={`font-bold text-lg ${
+                      index === 0
+                        ? "text-yellow-600"
+                        : index === 1
+                        ? "text-gray-600"
+                        : index === 2
+                        ? "text-orange-600"
+                        : "text-gray-500"
+                    }`}
+                  >
                     #{index + 1}
                   </span>
                   <div>
@@ -139,7 +150,9 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ onPlayerNameSubmit, newScore 
                     <div className="text-xs text-gray-500">{entry.date}</div>
                   </div>
                 </div>
-                <div className="font-bold text-lg text-blue-600">{entry.score}</div>
+                <div className="font-bold text-lg text-blue-600">
+                  {entry.score}
+                </div>
               </div>
             ))}
           </>
