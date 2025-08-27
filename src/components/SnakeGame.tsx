@@ -38,6 +38,32 @@ const SnakeGame = () => {
   const [direction, setDirection] = useState<Direction>(Direction.Right);
   const [score, setScore] = useState<number>(0);
   const [gameOver, setGameOver] = useState<boolean>(false);
+  const [showTouchOverlay, setShowTouchOverlay] = useState(true);
+  const handleTouchStart = (event: TouchEvent) => {
+    const touch = event.touches[0];
+    const x = touch.clientX;
+    const y = touch.clientY;
+
+    if (x < window.innerWidth / 2) {
+      if (direction !== Direction.Right) {
+        setDirection(Direction.Left);
+      }
+    } else {
+      if (direction !== Direction.Left) {
+        setDirection(Direction.Right);
+      }
+    }
+
+    if (y < window.innerHeight / 2) {
+      if (direction !== Direction.Down) {
+        setDirection(Direction.Up);
+      }
+    } else {
+      if (direction !== Direction.Up) {
+        setDirection(Direction.Down);
+      }
+    }
+  };
 
   useEffect(() => {
     if (difficulty === Difficulty.Easy) {
@@ -136,9 +162,11 @@ const SnakeGame = () => {
 
   useEffect(() => {
     document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener("touchstart", handleTouchStart);
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("touchstart", handleTouchStart);
     };
   }, [direction]);
 
@@ -193,6 +221,34 @@ const SnakeGame = () => {
         ))}
       </div>
       <p className="text-lg font-bold mt-4">Score: {score}</p>
+      {showTouchOverlay && (
+        <div className="flex justify-between items-center mt-4 md:hidden">
+          <div
+            className="w-8 h-8 bg-white/50 rounded-full cursor-pointer flex justify-center items-center"
+            onClick={() => setDirection(Direction.Left)}
+          >
+            <span className="text-lg font-bold">&larr;</span>
+          </div>
+          <div
+            className="w-8 h-8 bg-white/50 rounded-full cursor-pointer flex justify-center items-center"
+            onClick={() => setDirection(Direction.Up)}
+          >
+            <span className="text-lg font-bold">&uarr;</span>
+          </div>
+          <div
+            className="w-8 h-8 bg-white/50 rounded-full cursor-pointer flex justify-center items-center"
+            onClick={() => setDirection(Direction.Down)}
+          >
+            <span className="text-lg font-bold">&darr;</span>
+          </div>
+          <div
+            className="w-8 h-8 bg-white/50 rounded-full cursor-pointer flex justify-center items-center"
+            onClick={() => setDirection(Direction.Right)}
+          >
+            <span className="text-lg font-bold">&rarr;</span>
+          </div>
+        </div>
+      )}
       {gameOver && (
         <div>
           <p className="text-lg font-bold mt-4">Game Over!</p>
