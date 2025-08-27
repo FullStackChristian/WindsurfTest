@@ -2,7 +2,7 @@ const Controls = () => {
   const controlItems = [
     {
       icon: "⌨️",
-      title: "Arrow Keys",
+      title: "Arrow Keys / WASD",
       description: "Move the snake up, down, left, or right"
     },
     {
@@ -55,6 +55,16 @@ const Controls = () => {
               <div>
                 <h3 className="font-semibold text-gray-900">{item.title}</h3>
                 <p className="text-sm text-gray-600">{item.description}</p>
+                {index === 0 && (
+                  <div className="mt-2 text-xs text-gray-500">
+                    <div className="flex gap-4">
+                      <span>↑ W - Up</span>
+                      <span>← A - Left</span>
+                      <span>↓ S - Down</span>
+                      <span>→ D - Right</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ))}

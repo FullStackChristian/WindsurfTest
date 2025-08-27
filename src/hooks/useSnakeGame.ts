@@ -125,7 +125,8 @@ export const useSnakeGame = (onGameEnd?: (score: number) => void) => {
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     if (gameOver) return;
 
-    const newDirection = KEY_DIRECTION_MAP[event.key];
+    // Check both event.key and event.code for maximum compatibility
+    const newDirection = KEY_DIRECTION_MAP[event.key] || KEY_DIRECTION_MAP[event.code];
     if (newDirection !== undefined && direction !== OPPOSITE_DIRECTIONS[newDirection]) {
       setDirection(newDirection);
     }

@@ -33,10 +33,21 @@ export const DIFFICULTY_SPEEDS = {
 
 // Keyboard controls mapping
 export const KEY_DIRECTION_MAP: Record<string, Direction> = {
+  // Arrow keys
   'ArrowRight': Direction.Right,
   'ArrowLeft': Direction.Left,
   'ArrowUp': Direction.Up,
   'ArrowDown': Direction.Down,
+  // WASD keys
+  'KeyW': Direction.Up,
+  'KeyA': Direction.Left,
+  'KeyS': Direction.Down,
+  'KeyD': Direction.Right,
+  // Alternative lowercase (for compatibility)
+  'w': Direction.Up,
+  'a': Direction.Left,
+  's': Direction.Down,
+  'd': Direction.Right,
 };
 
 // Opposite directions for preventing reverse movement

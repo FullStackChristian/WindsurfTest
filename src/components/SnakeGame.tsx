@@ -122,7 +122,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ onGameEnd }) => {
 
       {/* Game Controls Info */}
       <div className="mt-4 text-sm text-gray-600">
-        <p><strong>Controls:</strong> Arrow keys to move, Space to pause</p>
+        <p><strong>Controls:</strong> Arrow keys or WASD to move, Space to pause</p>
       </div>
 
       {gameOver && (
