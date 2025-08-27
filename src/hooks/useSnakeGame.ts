@@ -82,9 +82,6 @@ export const useSnakeGame = (onGameEnd?: (score: number) => void) => {
       // Check for collisions before moving
       if (isOutOfBounds(newHead) || isCollisionWithSelf(newHead, currentSnake)) {
         setGameOver(true);
-        if (onGameEnd) {
-          onGameEnd(currentScoreRef.current);
-        }
         return currentSnake;
       }
 
@@ -100,7 +97,14 @@ export const useSnakeGame = (onGameEnd?: (score: number) => void) => {
 
       return newSnake;
     });
-  }, [direction, food, gameOver, isPaused, onGameEnd]);
+  }, [direction, food, gameOver, isPaused]);
+
+  // Handle game end callback in useEffect to avoid setState during render
+  useEffect(() => {
+    if (gameOver && onGameEnd) {
+      onGameEnd(currentScoreRef.current);
+    }
+  }, [gameOver, onGameEnd]);
 
   // Game loop
   useEffect(() => {

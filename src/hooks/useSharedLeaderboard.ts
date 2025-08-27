@@ -15,7 +15,6 @@ export const useSharedLeaderboard = (): UseSharedLeaderboardReturn => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isOnline, setIsOnline] = useState(true);
 
   // Load scores on component mount
   const loadScores = useCallback(async () => {
@@ -25,14 +24,12 @@ export const useSharedLeaderboard = (): UseSharedLeaderboardReturn => {
     try {
       const result = await ScoreService.getScores();
       setLeaderboard(result.data || []);
-      setIsOnline(result.success);
       
       if (!result.success && result.error) {
         setError(result.error);
       }
     } catch (err) {
       setError('Failed to load leaderboard');
-      setIsOnline(false);
     } finally {
       setIsLoading(false);
     }
@@ -49,7 +46,6 @@ export const useSharedLeaderboard = (): UseSharedLeaderboardReturn => {
     try {
       const result = await ScoreService.submitScore(entry);
       setLeaderboard(result.data || []);
-      setIsOnline(result.success);
       
       if (!result.success && result.error) {
         setError(result.error);
@@ -58,7 +54,6 @@ export const useSharedLeaderboard = (): UseSharedLeaderboardReturn => {
       }
     } catch (err) {
       setError('Failed to submit score');
-      setIsOnline(false);
     }
   }, []);
 
@@ -72,22 +67,11 @@ export const useSharedLeaderboard = (): UseSharedLeaderboardReturn => {
     loadScores();
   }, [loadScores]);
 
-  // Auto-refresh every 30 seconds when online
-  useEffect(() => {
-    if (!isOnline) return;
-
-    const interval = setInterval(() => {
-      loadScores();
-    }, 30000); // 30 seconds
-
-    return () => clearInterval(interval);
-  }, [isOnline, loadScores]);
-
   return {
     leaderboard,
     isLoading,
     error,
-    isOnline,
+    isOnline: true, // Always true for localStorage
     submitScore,
     refreshScores,
   };
