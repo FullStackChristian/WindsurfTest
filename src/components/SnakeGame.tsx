@@ -38,78 +38,6 @@ const SnakeGame = () => {
   const [direction, setDirection] = useState<Direction>(Direction.Right);
   const [score, setScore] = useState<number>(0);
   const [gameOver, setGameOver] = useState<boolean>(false);
-  const [showTouchOverlay, setShowTouchOverlay] = useState(true);
-  const handleTouchStart = (event: TouchEvent) => {
-    const touch = event.touches[0];
-    const x = touch.clientX;
-    const y = touch.clientY;
-
-    if (x < window.innerWidth / 2) {
-      if (direction !== Direction.Right) {
-        setDirection(Direction.Left);
-      }
-    } else {
-      if (direction !== Direction.Left) {
-        setDirection(Direction.Right);
-      }
-    }
-
-    if (y < window.innerHeight / 2) {
-      if (direction !== Direction.Down) {
-        setDirection(Direction.Up);
-      }
-    } else {
-      if (direction !== Direction.Up) {
-        setDirection(Direction.Down);
-      }
-    }
-  };
-
-  useEffect(() => {
-    const touchOverlay = document.createElement("div");
-    touchOverlay.className = "touch-overlay";
-    document.body.appendChild(touchOverlay);
-
-    const leftButton = document.createElement("div");
-    leftButton.className = "touch-button left";
-    leftButton.addEventListener("touchstart", () => {
-      if (direction !== Direction.Right) {
-        setDirection(Direction.Left);
-      }
-    });
-    touchOverlay.appendChild(leftButton);
-
-    const rightButton = document.createElement("div");
-    rightButton.className = "touch-button right";
-    rightButton.addEventListener("touchstart", () => {
-      if (direction !== Direction.Left) {
-        setDirection(Direction.Right);
-      }
-    });
-    touchOverlay.appendChild(rightButton);
-
-    const upButton = document.createElement("div");
-    upButton.className = "touch-button up";
-    upButton.addEventListener("touchstart", () => {
-      if (direction !== Direction.Down) {
-        setDirection(Direction.Up);
-      }
-    });
-    touchOverlay.appendChild(upButton);
-
-    const downButton = document.createElement("div");
-    downButton.className = "touch-button down";
-    downButton.addEventListener("touchstart", () => {
-      if (direction !== Direction.Up) {
-        setDirection(Direction.Down);
-      }
-    });
-    touchOverlay.appendChild(downButton);
-
-    return () => {
-      document.body.removeChild(touchOverlay);
-    };
-  }, [direction]);
 
   useEffect(() => {
     if (difficulty === Difficulty.Easy) {
@@ -208,11 +136,9 @@ const SnakeGame = () => {
 
   useEffect(() => {
     document.addEventListener("keydown", handleKeyDown);
-    document.addEventListener("touchstart", handleTouchStart);
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      document.removeEventListener("touchstart", handleTouchStart);
     };
   }, [direction]);
 
@@ -289,14 +215,6 @@ const SnakeGame = () => {
           >
             Restart Game
           </button>
-        </div>
-      )}
-      {showTouchOverlay && (
-        <div className="absolute top-0 left-0 w-full h-full flex justify-between items-center z-10">
-          <div className="w-1/5 h-1/5 bg-white/50 rounded-full cursor-pointer absolute left-10 top-10" />
-          <div className="w-1/5 h-1/5 bg-white/50 rounded-full cursor-pointer absolute right-10 top-10" />
-          <div className="w-1/5 h-1/5 bg-white/50 rounded-full cursor-pointer absolute left-10 top-10" />
-          <div className="w-1/5 h-1/5 bg-white/50 rounded-full cursor-pointer absolute right-10 bottom-10" />
         </div>
       )}
     </div>
