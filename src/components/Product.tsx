@@ -3,7 +3,7 @@ import SnakeGame from "./SnakeGame";
 
 const Product = () => {
   return (
-    <div className="flex gap-1">
+    <div className="lg:flex gap-1">
       <Controls />
       <SnakeGame />
     </div>
