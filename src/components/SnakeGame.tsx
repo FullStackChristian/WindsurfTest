@@ -17,6 +17,12 @@ enum Direction {
   Down,
 }
 
+enum Difficulty {
+  Easy,
+  Medium,
+  Hard,
+}
+
 const SnakeGame = () => {
   const [snake, setSnake] = useState<SnakeSegment[]>([
     { x: 10, y: 10 },
@@ -27,9 +33,21 @@ const SnakeGame = () => {
     x: Math.floor(Math.random() * 20),
     y: Math.floor(Math.random() * 20),
   });
+  const [difficulty, setDifficulty] = useState<Difficulty>(1);
+  const [speed, setSpeed] = useState(150);
   const [direction, setDirection] = useState<Direction>(Direction.Right);
   const [score, setScore] = useState<number>(0);
   const [gameOver, setGameOver] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (difficulty === Difficulty.Easy) {
+      setSpeed(150);
+    } else if (difficulty === Difficulty.Medium) {
+      setSpeed(100);
+    } else if (difficulty === Difficulty.Hard) {
+      setSpeed(50);
+    }
+  }, [difficulty]);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -84,7 +102,7 @@ const SnakeGame = () => {
 
         setSnake(newSnake);
       }
-    }, 100);
+    }, speed);
 
     return () => clearInterval(intervalId);
   }, [snake, food, direction, gameOver, score]);
@@ -125,6 +143,33 @@ const SnakeGame = () => {
   return (
     <div className="max-w-md mx-auto p-4 bg-white rounded shadow-md">
       <h2 className="text-2xl font-bold mb-4">Snake Game</h2>
+      <div className="flex pb-4 gap-2">
+        Set Difficulty:
+        <button
+          className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+          onClick={() => {
+            setDifficulty(Difficulty.Easy);
+          }}
+        >
+          For Ross
+        </button>
+        <button
+          className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded"
+          onClick={() => {
+            setDifficulty(Difficulty.Medium);
+          }}
+        >
+          Medium
+        </button>
+        <button
+          className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+          onClick={() => {
+            setDifficulty(Difficulty.Hard);
+          }}
+        >
+          Hard
+        </button>
+      </div>
       <div className="grid grid-cols-20 grid-rows-20 gap-1">
         {Array.from({ length: 20 }, (_, row) => (
           <React.Fragment key={row}>
