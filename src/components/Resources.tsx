@@ -1,5 +1,3 @@
-import React from "react";
-
 const Resources = () => {
   return (
     <div className="max-w-md mx-auto p-4 bg-white rounded shadow-md">

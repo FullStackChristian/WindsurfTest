@@ -1,6 +1,4 @@
-// ButtonCircle.tsx
-import React, { useState } from "react";
-
+import { useState } from "react";
 const RossFanButton = () => {
   const [showCircle, setShowCircle] = useState(false);
 
