@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { STORAGE_KEYS, MAX_LEADERBOARD_ENTRIES } from "../constants/gameConstants";
 
 export interface LeaderboardEntry {
   name: string;
@@ -21,7 +22,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
 
   // Load leaderboard from localStorage on component mount
   useEffect(() => {
-    const savedLeaderboard = localStorage.getItem("snakeGameLeaderboard");
+    const savedLeaderboard = localStorage.getItem(STORAGE_KEYS.LEADERBOARD);
     if (savedLeaderboard) {
       setLeaderboard(JSON.parse(savedLeaderboard));
     }
@@ -43,11 +44,11 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
 
     const updatedLeaderboard = [...leaderboard, newEntry]
       .sort((a, b) => b.score - a.score)
-      .slice(0, 25); // Keep only top 25
+      .slice(0, MAX_LEADERBOARD_ENTRIES);
 
     setLeaderboard(updatedLeaderboard);
     localStorage.setItem(
-      "snakeGameLeaderboard",
+      STORAGE_KEYS.LEADERBOARD,
       JSON.stringify(updatedLeaderboard)
     );
   };
