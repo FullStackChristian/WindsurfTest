@@ -38,7 +38,7 @@ const SnakeGame = () => {
   const [direction, setDirection] = useState<Direction>(Direction.Right);
   const [score, setScore] = useState<number>(0);
   const [gameOver, setGameOver] = useState<boolean>(false);
-  const [showTouchOverlay, setShowTouchOverlay] = useState(true);
+  const showTouchOverlay = true;
   const handleTouchStart = (event: TouchEvent) => {
     const touch = event.touches[0];
     const x = touch.clientX;
