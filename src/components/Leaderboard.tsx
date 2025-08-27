@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { STORAGE_KEYS, MAX_LEADERBOARD_ENTRIES } from "../constants/gameConstants";
+import { MAX_LEADERBOARD_ENTRIES } from "../constants/gameConstants";
+import { useSharedLeaderboard } from "../hooks/useSharedLeaderboard";
 
 export interface LeaderboardEntry {
   name: string;
@@ -17,16 +18,17 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
   newScore,
 }) => {
   const [playerName, setPlayerName] = useState("");
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [showNameInput, setShowNameInput] = useState(false);
-
-  // Load leaderboard from localStorage on component mount
-  useEffect(() => {
-    const savedLeaderboard = localStorage.getItem(STORAGE_KEYS.LEADERBOARD);
-    if (savedLeaderboard) {
-      setLeaderboard(JSON.parse(savedLeaderboard));
-    }
-  }, []);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const { 
+    leaderboard, 
+    isLoading, 
+    error, 
+    isOnline, 
+    submitScore, 
+    refreshScores 
+  } = useSharedLeaderboard();
 
   // Show name input when a new score is available
   useEffect(() => {
@@ -35,31 +37,20 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
     }
   }, [newScore]);
 
-  const addScore = (name: string, score: number) => {
-    const newEntry: LeaderboardEntry = {
-      name: name.trim() || "Anonymous",
-      score,
-      date: new Date().toLocaleDateString(),
-    };
-
-    const updatedLeaderboard = [...leaderboard, newEntry]
-      .sort((a, b) => b.score - a.score)
-      .slice(0, MAX_LEADERBOARD_ENTRIES);
-
-    setLeaderboard(updatedLeaderboard);
-    localStorage.setItem(
-      STORAGE_KEYS.LEADERBOARD,
-      JSON.stringify(updatedLeaderboard)
-    );
-  };
-
-  const handleSubmitScore = () => {
-    if (newScore !== undefined) {
-      addScore(playerName, newScore);
-      setPlayerName("");
-      setShowNameInput(false);
-      if (onPlayerNameSubmit) {
-        onPlayerNameSubmit(playerName.trim() || "Anonymous");
+  const handleSubmitScore = async () => {
+    if (newScore !== undefined && !isSubmitting) {
+      setIsSubmitting(true);
+      try {
+        await submitScore(playerName, newScore);
+        setPlayerName("");
+        setShowNameInput(false);
+        if (onPlayerNameSubmit) {
+          onPlayerNameSubmit(playerName.trim() || "Anonymous");
+        }
+      } catch (error) {
+        console.error('Failed to submit score:', error);
+      } finally {
+        setIsSubmitting(false);
       }
     }
   };
@@ -78,58 +69,75 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
     }
   };
 
-  const getRankStyles = (index: number) => {
-    switch (index) {
-      case 0: return "bg-gradient-to-r from-yellow-100 to-yellow-200 border-2 border-yellow-400 shadow-lg";
-      case 1: return "bg-gradient-to-r from-gray-100 to-gray-200 border-2 border-gray-400 shadow-md";
-      case 2: return "bg-gradient-to-r from-orange-100 to-orange-200 border-2 border-orange-400 shadow-md";
-      default: return "bg-white border border-gray-200 hover:bg-gray-50";
-    }
-  };
 
   return (
-    <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-red-600 to-pink-600 px-6 py-4">
-        <h2 className="text-xl font-bold text-white text-center flex items-center justify-center gap-2">
+    <div className="bg-gradient-to-br from-red-50 to-red-100 p-6 rounded-2xl shadow-xl border border-red-200">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-red-800 text-center flex-1">
           🏆 Leaderboard
         </h2>
+        <div className="flex items-center gap-2">
+          {isLoading && (
+            <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+          )}
+          <button
+            onClick={refreshScores}
+            disabled={isLoading}
+            className="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
+            title="Refresh scores"
+          >
+            🔄
+          </button>
+        </div>
       </div>
 
-      {/* Score Input Modal */}
+      {/* Connection status */}
+      <div className="mb-4 flex items-center justify-center gap-2 text-sm">
+        <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+        <span className={isOnline ? 'text-green-700' : 'text-yellow-700'}>
+          {isOnline ? 'Global leaderboard' : 'Local scores only'}
+        </span>
+      </div>
+
+      {/* Error message */}
+      {error && (
+        <div className="mb-4 p-3 bg-yellow-100 border border-yellow-300 rounded-lg text-yellow-800 text-sm">
+          ⚠️ {error}
+        </div>
+      )}
+
       {showNameInput && (
-        <div className="p-6 bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-200">
-          <div className="text-center mb-4">
-            <div className="text-3xl mb-2">🎉</div>
-            <h3 className="text-xl font-bold text-green-800 mb-1">
-              Awesome Score: {newScore}!
-            </h3>
-            <p className="text-sm text-green-600">
-              Enter your name to join the hall of fame
-            </p>
-          </div>
-          
-          <div className="space-y-3">
+        <div className="mb-6 p-4 bg-white rounded-xl border-2 border-red-300 shadow-md">
+          <h3 className="text-lg font-semibold text-red-700 mb-3">
+            🎉 New High Score: {newScore}!
+          </h3>
+          <div className="flex flex-col gap-3">
             <input
               type="text"
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
-              placeholder="Enter your name..."
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-center font-medium"
+              placeholder="Enter your name"
+              className="px-4 py-2 border-2 border-red-300 rounded-lg focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-colors"
               maxLength={20}
-              onKeyPress={(e) => e.key === "Enter" && handleSubmitScore()}
-              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleSubmitScore();
+                }
+              }}
+              disabled={isSubmitting}
             />
             <div className="flex gap-2">
               <button
                 onClick={handleSubmitScore}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+                disabled={isSubmitting}
+                className="flex-1 bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 font-semibold shadow-md hover:shadow-lg transform hover:scale-105 disabled:opacity-50 disabled:transform-none"
               >
-                <span>💾</span> Save Score
+                {isSubmitting ? 'Submitting...' : 'Submit Score'}
               </button>
               <button
                 onClick={handleSkipScore}
-                className="px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition-colors duration-200"
+                disabled={isSubmitting}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium disabled:opacity-50"
               >
                 Skip
               </button>
@@ -138,69 +146,36 @@ const Leaderboard: React.FC<LeaderboardProps> = ({
         </div>
       )}
 
-      {/* Leaderboard Content */}
-      <div className="p-6">
-        {leaderboard.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">🎮</div>
-            <p className="text-gray-500 text-lg font-medium mb-2">
-              No scores yet!
-            </p>
-            <p className="text-gray-400 text-sm">
-              Be the first to play and claim the top spot
-            </p>
+      <div className="space-y-3">
+        {isLoading && leaderboard.length === 0 ? (
+          <div className="text-red-600 text-center py-8">
+            <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+            Loading scores...
           </div>
+        ) : leaderboard.length === 0 ? (
+          <p className="text-red-600 text-center py-8 italic">
+            No scores yet. Be the first to play!
+          </p>
         ) : (
-          <>
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-sm font-semibold text-gray-600 flex items-center gap-2">
-                📊 Top {Math.min(leaderboard.length, MAX_LEADERBOARD_ENTRIES)} Players
-              </span>
-              <span className="text-xs text-gray-400">
-                {leaderboard.length} total scores
-              </span>
-            </div>
-            
-            <div className="space-y-2">
-              {leaderboard.map((entry, index) => (
-                <div
-                  key={`${entry.name}-${entry.score}-${index}`}
-                  className={`flex items-center justify-between p-4 rounded-lg transition-all duration-200 ${getRankStyles(index)}`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">{getRankIcon(index)}</span>
-                      <span className="font-bold text-lg text-gray-700">
-                        #{index + 1}
-                      </span>
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-900 truncate max-w-32">
-                        {entry.name}
-                      </div>
-                      <div className="text-xs text-gray-500 flex items-center gap-1">
-                        📅 {entry.date}
-                      </div>
-                    </div>
+          leaderboard.slice(0, MAX_LEADERBOARD_ENTRIES).map((entry, index) => (
+            <div
+              key={`${entry.name}-${entry.score}-${index}`}
+              className="flex items-center justify-between p-4 bg-white rounded-xl shadow-md border border-red-100 hover:shadow-lg transition-shadow"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{getRankIcon(index)}</span>
+                <div>
+                  <div className="font-semibold text-red-800">
+                    {entry.name}
                   </div>
-                  <div className="text-right">
-                    <div className="font-bold text-xl text-red-600">
-                      {entry.score}
-                    </div>
-                    <div className="text-xs text-gray-500">points</div>
-                  </div>
+                  <div className="text-sm text-red-600">{entry.date}</div>
                 </div>
-              ))}
-            </div>
-
-            {leaderboard.length >= 10 && (
-              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-center">
-                <p className="text-sm text-red-700">
-                  🔥 Competition is heating up! Can you beat the top score?
-                </p>
               </div>
-            )}
-          </>
+              <div className="text-xl font-bold text-red-700">
+                {entry.score}
+              </div>
+            </div>
+          ))
         )}
       </div>
     </div>
